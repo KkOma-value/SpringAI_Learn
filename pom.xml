@@ -56,6 +56,13 @@
         </dependency>
 
 
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
+        </dependency>
+
+
         <!-- https://mvnrepository.com/artifact/com.alibaba/dashscope-sdk-java -->
         <dependency>
             <groupId>com.alibaba.cloud.ai</groupId>
@@ -103,11 +110,22 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
+        </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.ai</groupId>
+            <artifactId>spring-ai-mcp-client-spring-boot-starter</artifactId>
+            <version>1.0.0-M6</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/dev.langchain4j/langchain4j-community-dashscope -->
@@ -147,6 +165,9 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+
+
+
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-pgvector-store</artifactId>
