@@ -6,7 +6,7 @@ spring:
   datasource:
     url: jdbc:postgresql://rm-cn-fzh49j47s0001oho.rwlb.rds.aliyuncs.com:5432/postgres
     username: super_idea
-    password: Dopa199
+    password: Dopa1997
   ai:
     mcp:
       client:
