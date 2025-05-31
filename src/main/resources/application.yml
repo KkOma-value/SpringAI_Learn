@@ -4,9 +4,18 @@ spring:
   profiles:
     active: local
   datasource:
-    url: 
-    username:
-    password:
+    url: jdbc:postgresql://rm-cn-fzh49j47s0001oho.rwlb.rds.aliyuncs.com:5432/postgres
+    username: super_idea
+    password: Dopa199
+  ai:
+    mcp:
+      client:
+        sse:
+          connections:
+            server1:
+              url: http://localhost:8127
+        # stdio:
+        # servers-configuration: classpath:mcp-servers.json
 
 
 server:
