@@ -14,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.boot.mail.sender.auto-validation=false"
 })
 class EmailSendToolTest {
-
     @Autowired
     private EmailSendTool emailTool;  // 使用依赖注入
 
