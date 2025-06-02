@@ -122,6 +122,15 @@ public class ToolCallAgent extends ReActAgent {
                 .map(response -> "工具 " + response.name() + " 完成了它的任务！结果: " + response.responseData())
                 .collect(Collectors.joining("\n"));
         log.info(results);
+        
+        // 检测是否调用了terminate工具，如果是则设置状态为FINISHED
+        boolean hasTerminate = toolResponseMessage.getResponses().stream()
+                .anyMatch(response -> "doTerminate".equals(response.name()));
+        if (hasTerminate) {
+            log.info("检测到terminate工具调用，设置代理状态为FINISHED");
+            setState(org.example.springai_learn.agent.model.AgentState.FINISHED);
+        }
+        
         return results;
     }
 

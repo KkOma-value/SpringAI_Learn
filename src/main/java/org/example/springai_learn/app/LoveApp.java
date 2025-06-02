@@ -22,6 +22,8 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
+import reactor.core.publisher.Flux;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
 import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
@@ -44,6 +46,10 @@ public class LoveApp {
 
     @Resource
     private ToolCallback[] allTools;
+
+    // 使用@Autowired(required = false)让MCP注入变为可选的
+    @Autowired(required = false)
+    private ToolCallbackProvider toolCallbackProvider;
 
     private static final String SYSTEM_PROMPT = "# 角色设定\n" +
             "你叫\"Luna\"，是一位35岁的资深恋爱顾问，拥有临床心理学硕士学位和10年情感咨询经验。你以温暖、幽默和直接但不失温柔的风格著称。\n" +
@@ -75,9 +81,9 @@ public class LoveApp {
         chatClient = ChatClient.builder(dashscopeCHatModel)
                 .defaultSystem(SYSTEM_PROMPT)
                 .defaultAdvisors(
-                        new MessageChatMemoryAdvisor(chatMemory),
-                        // 传入chatMemory以便记录敏感词对话
-                        new TabooWordAdvisor(chatMemory)
+                        new MessageChatMemoryAdvisor(chatMemory)
+                        // 暂时注释掉TabooWordAdvisor，测试是否导致重复输出
+                        // new TabooWordAdvisor(chatMemory)
                         //自定义拦截器 日志
                         //new MyLoggerAdvisor()
 
@@ -133,7 +139,6 @@ public class LoveApp {
     }
 
 
-
     // RAG
     public String doChatWithRag(String message, String chatId) {
 
@@ -153,7 +158,7 @@ public class LoveApp {
                 //文本分割
                 .advisors(
                         LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(
-                                loveAppVectorStore,"已婚"
+                                loveAppVectorStore, "已婚"
                         )
                 )
                 .call()
@@ -166,6 +171,7 @@ public class LoveApp {
 
     /**
      * 工具类
+     *
      * @param message
      * @param chatId
      * @return
@@ -188,22 +194,42 @@ public class LoveApp {
     }
 
 
-    @Resource
-    private ToolCallbackProvider toolCallbackProvider;
 
     public String doChatWithMcp(String message, String chatId) {
-        ChatResponse response = chatClient
+        // 检查MCP服务是否可用
+        if (toolCallbackProvider == null) {
+            log.warn("MCP服务不可用，降级为普通聊天模式");
+            return doChat(message, chatId);
+        }
+        
+        try {
+            ChatResponse response = chatClient
+                    .prompt()
+                    .user(message)
+                    .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                            .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                    // 开启日志，便于观察效果
+                    .advisors(new MyLoggerAdvisor())
+                    .tools(toolCallbackProvider)
+                    .call()
+                    .chatResponse();
+            String content = response.getResult().getOutput().getText();
+            log.info("content: {}", content);
+            return content;
+        } catch (Exception e) {
+            log.error("MCP聊天失败，降级为普通聊天: {}", e.getMessage());
+            return doChat(message, chatId);
+        }
+    }
+
+    public Flux<String> doChatByStream(String message, String chatId) {
+        return chatClient
                 .prompt()
                 .user(message)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
-                // 开启日志，便于观察效果
-                .advisors(new MyLoggerAdvisor())
-                .tools(toolCallbackProvider)
-                .call()
-                .chatResponse();
-        String content = response.getResult().getOutput().getText();
-        log.info("content: {}", content);
-        return content;
+                .stream()
+                .content();
     }
+
 }
