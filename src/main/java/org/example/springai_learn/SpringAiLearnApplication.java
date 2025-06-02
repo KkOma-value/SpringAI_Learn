@@ -8,7 +8,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.JdbcTemplateAutoConfiguration;
 
-@SpringBootApplication(exclude = PgVectorStoreAutoConfiguration.class)
+@SpringBootApplication(exclude = {
+        PgVectorStoreAutoConfiguration.class,
+        McpClientAutoConfiguration.class,
+        DataSourceAutoConfiguration.class,
+        JdbcTemplateAutoConfiguration.class
+})
 public class SpringAiLearnApplication {
 
     public static void main(String[] args) {
